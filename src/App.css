@@ -71,9 +71,19 @@ ul {
 
 .bold {
   color: red;
+  font-weight: 900;
 }
 
 .flex-reverse {
   display: flex;
   flex-direction: column-reverse;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: row;
+}
+
+.form-field input {
+  width: 30px;
 }

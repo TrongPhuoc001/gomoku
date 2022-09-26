@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useState } from "react";
 import { Board } from "./Board";
 export const Game = (props) => {
@@ -10,19 +11,30 @@ export const Game = (props) => {
     stepNumber: 0,
     xIsNext: true,
   });
-
+  useEffect(() => {
+    setState({
+      history: [
+        {
+          squares: Array(props.size * props.size).fill(null),
+        },
+      ],
+      stepNumber: 0,
+      xIsNext: true,
+    });
+  }, [props.size]);
   const [sortASC, setSortASC] = useState(true);
 
   const [winner, line] = calculateWinner(
     state.history[state.stepNumber].squares,
-    props.size
+    props.size,
+    props.rule
   );
 
   const handleClick = (i) => {
     const history = state.history.slice(0, state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
-    if (calculateWinner(squares, props.size)[0] || squares[i]) {
+    if (calculateWinner(squares, props.size, props.rule)[0] || squares[i]) {
       return;
     }
     squares[i] = state.xIsNext ? "X" : "O";
@@ -97,14 +109,11 @@ export const Game = (props) => {
   );
 };
 
-function calculateWinner(squares, size) {
-  const winningLines = [
-    ["X", "X", "X", "X", "X"],
-    ["O", "O", "O", "O", "O"],
-  ];
+function calculateWinner(squares, size, rule) {
+  const winningLines = [Array(rule).fill("X"), Array(rule).fill("O")];
   for (let i = 0; i < squares.length; i++) {
     if (squares[i]) {
-      const lines = getLines(i, size);
+      const lines = getLines(i, size, rule);
       for (let j = 0; j < lines.length; j++) {
         let line = lines[j];
         let lineValues = [];
@@ -117,26 +126,28 @@ function calculateWinner(squares, size) {
       }
     }
   }
-
+  if (!squares.includes(null)) {
+    return ["Draw", []];
+  }
   return [null, null];
 }
 
-const getLines = (pos, size) => {
+const getLines = (pos, size, rule) => {
   let lines = [];
-  if (getHorizontalLine(pos, size).length === 5)
-    lines.push(getHorizontalLine(pos, size));
-  if (getVerticalLine(pos, size).length === 5)
-    lines.push(getVerticalLine(pos, size));
-  if (getDiagonalLine(pos, size).length === 5)
-    lines.push(getDiagonalLine(pos, size));
-  if (getReverseDiagonalLine(pos, size).length === 5)
-    lines.push(getReverseDiagonalLine(pos, size));
+  if (getHorizontalLine(pos, size, rule).length === rule)
+    lines.push(getHorizontalLine(pos, size, rule));
+  if (getVerticalLine(pos, size, rule).length === rule)
+    lines.push(getVerticalLine(pos, size, rule));
+  if (getDiagonalLine(pos, size, rule).length === rule)
+    lines.push(getDiagonalLine(pos, size, rule));
+  if (getReverseDiagonalLine(pos, size, rule).length === rule)
+    lines.push(getReverseDiagonalLine(pos, size, rule));
   return lines;
 };
 
-const getHorizontalLine = (pos, size) => {
+const getHorizontalLine = (pos, size, rule) => {
   let line = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < rule; i++) {
     if ((pos % size) + i < size) {
       line.push(pos + i);
     }
@@ -144,9 +155,9 @@ const getHorizontalLine = (pos, size) => {
   return line;
 };
 
-const getVerticalLine = (pos, size) => {
+const getVerticalLine = (pos, size, rule) => {
   let line = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < rule; i++) {
     if (Math.floor((pos + i * size) / size) < size) {
       line.push(pos + i * size);
     }
@@ -154,9 +165,9 @@ const getVerticalLine = (pos, size) => {
   return line;
 };
 
-const getDiagonalLine = (pos, size) => {
+const getDiagonalLine = (pos, size, rule) => {
   let line = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < rule; i++) {
     if ((pos % size) + i < size && Math.floor((pos + i * size) / size) < size) {
       line.push(pos + i * size + i);
     }
@@ -164,9 +175,9 @@ const getDiagonalLine = (pos, size) => {
   return line;
 };
 
-const getReverseDiagonalLine = (pos, size) => {
+const getReverseDiagonalLine = (pos, size, rule) => {
   let line = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < rule; i++) {
     if ((pos % size) - i > 0 && Math.floor((pos + i * size) / size) < size) {
       line.push(pos + i * size - i);
     }
